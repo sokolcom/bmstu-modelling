@@ -1,0 +1,37 @@
+\begin{thebibliography}{1}
+\def\selectlanguageifdefined#1{
+\expandafter\ifx\csname date#1\endcsname\relax
+\else\language\csname l@#1\endcsname\fi}
+\ifx\undefined\url\def\url#1{{\small #1}}\else\fi
+\ifx\undefined\BibUrl\def\BibUrl#1{\url{#1}}\else\fi
+\ifx\undefined\BibAnnote\long\def\BibAnnote#1{(#1)}\else\fi
+\ifx\undefined\BibEmph\def\BibEmph#1{\emph{#1}}\else\fi
+
+\bibitem{Cormen}
+\selectlanguageifdefined{russian}
+К.~Кормен Т. Лейзерсон Ч. Ривест Р.~Штайн.
+  Алгоритмы: построение и анализ.
+\newblock Вильямс, 2019.
+\newblock {С.}~198--219.
+
+\bibitem{python}
+\selectlanguageifdefined{russian}
+Язык программирования Python.
+\newblock Режим доступа: \url{http://www.python.org} (дата
+  обращения: 01.10.2020).
+
+\bibitem{vscode}
+\selectlanguageifdefined{russian}
+Редактор кода VS Code.
+\newblock Режим доступа: \url{https://code.visualstudio.com/}
+  (дата обращения: 01.10.2020).
+
+\bibitem{computer}
+\selectlanguageifdefined{russian}
+Технические характеристики ноутбука HP ProBook
+  450 G5 PC.
+\newblock Режим доступа:
+  \url{https://support.hp.com/ru-ru/document/c05739572} (дата
+  обращения: 01.10.2020).
+
+\end{thebibliography}
