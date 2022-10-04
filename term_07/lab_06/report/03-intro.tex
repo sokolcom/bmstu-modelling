@@ -1,0 +1,127 @@
+
+\section*{Задание}
+В многофункциональный центр приходят посетители через интервал времени 5 +- 2 минуты. При входе производится проверка наличия маски в течение 1 минуты. Если у посетителя нет маски, ему отказывается в обслуживании. Вероятность отсутствия маски у посетителя составляет 5\%. После проверки наличия маски производится проверка температуры в течение 3 +- 1 минуты. С вероятностью 2\% у посетителя будет температура и ему будет отказано в обслуживании. Далее посетители проходят к терминалам для получения талона очереди в течение 4 +- 1 минуты. Вероятность того, что в многофункциональный центр не предоставляют необходимую услугу, равняется 5\% Если все три терминала заняты, ему будет отказано в обслуживании. Если в очереди на окно набралось 10 человек, посетителю 
+отказывают. Всего есть 3 окна, которые работают 15 +- 5 , 10 
++- 2 , 20 +- 5 минут соответственно. Окно на терминале выбирается по равномерному распределению.
+
+Промоделировать процесс обработки 800 запросов. Определить вероятность отказа.
+
+
+
+\section*{Схема системы}
+На рисунке 1 приведена схема моделируемой системы.
+\img{45mm}{1}{Схема системы}
+
+
+\section*{Листинги}
+% Для листинга кода:
+\lstset{ %
+	language=python,                 % выбор языка для подсветки 
+	basicstyle=\scriptsize\sffamily, % размер и начертание шрифта для подсветки кода
+	numbers=left,               % где поставить нумерацию строк (слева\справа)
+	numberstyle=\tiny,           % размер шрифта для номеров строк
+	stepnumber=1,                   % размер шага между двумя номерами строк
+	numbersep=5pt,                % как далеко отстоят номера строк от подсвечиваемого кода
+	showspaces=false,            % показывать или нет пробелы специальными отступами
+	showstringspaces=false,      % показывать или нет пробелы в строках
+	showtabs=false,             % показывать или нет табуляцию в строках
+	frame=single,              % рисовать рамку вокруг кода
+	tabsize=2,                 % размер табуляции по умолчанию равен 2 пробелам
+	captionpos=t,              % позиция заголовка вверху [t] или внизу [b] 
+	breaklines=true,           % автоматически переносить строки (да\нет)
+	breakatwhitespace=false, % переносить строки только если есть пробел
+	escapeinside={\#*}{*)}   % если нужно добавить комментарии в коде
+}
+
+
+
+На листинге 1 приведена реализация класса Model; с помощью метода event\_mode выполняется моделирование системы.
+\begin{lstlisting}[label=CodeStand,caption=Класс Model]
+class Model:
+	def __init__(self, clients, mask_check, temp_check, terminals, windows):
+		self.clients = clients
+		self.mask_check = mask_check
+		self.temp_check = temp_check
+		self.terminals = terminals
+		self.windows = windows
+
+	def event_mode(self):
+		clients = self.clients
+		mask = self.mask_check
+		
+		clients.receivers = self.mask_check.copy()
+		self.mask_check[-1].receivers = self.temp_check.copy()
+		self.temp_check[-1].receivers = self.terminals.copy()
+		
+		self.terminals[0].receivers = self.windows.copy()
+		self.terminals[1].receivers = self.windows.copy()
+		self.terminals[2].receivers = self.windows.copy()
+		
+		clients.next = clients.delay()
+	
+		blocks = []
+		blocks += [clients]
+		blocks += self.mask_check
+		blocks += self.temp_check
+		blocks += self.terminals
+		blocks += self.windows
+		
+		refusals = {}
+		
+		for block in blocks:
+			refusals[block.name] = 0
+		refusals["query_window"] = 0
+	
+		while clients.num_requests >= 0:
+			current_time = clients.next
+			for block in blocks:
+				if (0 < block.next) and (block.next < current_time):
+					current_time = block.next
+	
+		for block in blocks:
+			if current_time == block.next:
+				if not isinstance(block, ProcessRequest):
+					next_clients = clients.generate_request()
+					if next_clients is not None:
+						next_clients.next = current_time + next_clients.delay()
+					else:
+						refusals[block.name] += 1
+					clients.next = current_time + clients.delay()
+				else:
+					next_process = block.process_request()
+					if block.queue == 0:
+						block.next = 0
+					else:
+						block.next = current_time + block.delay()
+		
+					if next_process == "kick":
+						if block.name.find("terminal") != -1:
+							refusals["query_window"] += 1
+						else:
+							refusals[block.name] += 1
+						continue
+		
+					if block.end:
+						continue
+		
+					if next_process is not None:
+						next_process.next = current_time + next_process.delay()
+					else:
+						refusals[block.name] += 1
+		
+		return refusals
+\end{lstlisting}
+
+
+
+\section*{Результаты выполнения работы}
+
+На рисунке 2 приведен результат работы системы с 800 заявок.
+\img{170mm}{2}{Результат моделирования системы с 800 заявками}
+
+
+
+
+
+
+

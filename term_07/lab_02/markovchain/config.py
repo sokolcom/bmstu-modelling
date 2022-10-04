@@ -1,0 +1,2 @@
+TIME_DELTA = 1e-3
+EPS = 1e-3
